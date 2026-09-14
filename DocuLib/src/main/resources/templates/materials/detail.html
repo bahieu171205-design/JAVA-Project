@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Chi tiết tài liệu', ~{::main})}">
+<main class="page-content narrow-content">
+    <section class="page-heading detail-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/}">Tổng quan</a><span>/</span><a th:href="@{/materials}">Tất cả tài liệu</a><span>/</span><span th:text="${material.inventoryCode}">TL-001</span></div>
+            <h1>Chi tiết tài liệu</h1>
+            <p>Thông tin biên mục và trạng thái của biểu ghi.</p>
+        </div>
+        <div class="heading-actions">
+            <a class="button button-secondary" th:href="${returnUrl}">Quay lại</a>
+            <form th:action="@{/materials/{id}/favorite(id=${material.id})}" method="post">
+                <input type="hidden" name="returnTo" value="detail">
+                <button class="button favorite-button" type="submit" th:classappend="${favorite} ? 'active'"
+                        th:aria-label="${favorite ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}">
+                    <th:block th:if="${favorite}"><svg th:replace="~{fragments/icons :: icon('star-filled')}"></svg></th:block>
+                    <th:block th:unless="${favorite}"><svg th:replace="~{fragments/icons :: icon('star')}"></svg></th:block>
+                    <span th:text="${favorite ? 'Đã yêu thích' : 'Yêu thích'}">Yêu thích</span>
+                </button>
+            </form>
+            <a class="button button-primary" th:if="${canEdit}" th:href="@{/materials/{id}/edit(id=${material.id},returnUrl=${returnUrl})}"><svg th:replace="~{fragments/icons :: icon('pencil')}"></svg> Chỉnh sửa</a>
+        </div>
+    </section>
+
+    <section class="panel document-identity">
+        <span class="detail-symbol" th:text="${material.materialType == T(vn.edu.doculib.model.MaterialType).EBOOK ? 'E' : 'T'}">T</span>
+        <div class="document-identity-copy">
+            <div class="detail-badges"><span class="badge badge-primary" th:text="${material.materialType.label}">Sách</span><span class="badge" th:classappend="${'badge-' + material.status.badgeClass}" th:text="${material.status.label}">Sẵn sàng</span></div>
+            <h2 th:text="${material.title}">Nhan đề tài liệu</h2>
+            <p>
+                <span th:if="${#sets.isEmpty(material.authors)}">Chưa cập nhật tác giả</span>
+                <span th:each="author, stat : ${material.authors}"><span th:text="${author.name}">Tác giả</span><span th:if="${!stat.last}"> · </span></span>
+            </p>
+            <span class="mono-code" th:text="${material.inventoryCode}">TL-001</span>
+        </div>
+    </section>
+
+    <section class="detail-layout">
+        <article class="panel detail-main">
+            <header class="panel-header"><div><h2>Thông tin biên mục</h2><p>Dữ liệu mô tả thư mục của tài liệu</p></div></header>
+            <dl class="metadata-grid">
+                <div><dt>Mã tài liệu</dt><dd><span class="mono-code" th:text="${material.inventoryCode}">TL-001</span></dd></div>
+                <div><dt>ISBN / ISSN</dt><dd th:text="${material.isbnIssn ?: 'Chưa cập nhật'}">—</dd></div>
+                <div><dt>Loại tài liệu</dt><dd th:text="${material.materialType.label}">Sách</dd></div>
+                <div><dt>Chủ đề</dt><dd th:text="${material.category != null ? material.category.name : 'Chưa phân loại'}">—</dd></div>
+                <div><dt>Nhà xuất bản</dt><dd th:text="${material.publisher != null ? material.publisher.name : 'Chưa cập nhật'}">—</dd></div>
+                <div><dt>Năm xuất bản</dt><dd th:text="${material.publishYear ?: 'Chưa cập nhật'}">—</dd></div>
+                <div><dt>Lần xuất bản</dt><dd th:text="${material.edition ?: 'Chưa cập nhật'}">—</dd></div>
+                <div><dt>Ngôn ngữ</dt><dd th:text="${material.language ?: 'Chưa cập nhật'}">—</dd></div>
+                <div><dt>Ký hiệu xếp giá</dt><dd th:text="${material.callNumber ?: 'Chưa cập nhật'}">—</dd></div>
+                <div><dt>Mô tả vật lý</dt><dd th:text="${material.pages != null ? material.pages + ' trang' : 'Chưa cập nhật'}">—</dd></div>
+                <div><dt>Số lượng</dt><dd><strong th:text="${material.quantity + ' bản'}">1 bản</strong></dd></div>
+                <div><dt>Trạng thái</dt><dd><span class="badge" th:classappend="${'badge-' + material.status.badgeClass}" th:text="${material.status.label}">Sẵn sàng</span></dd></div>
+            </dl>
+            <div class="description-block">
+                <h3>Tóm tắt nội dung</h3>
+                <p th:text="${material.description ?: 'Chưa có nội dung tóm tắt cho tài liệu này.'}">Mô tả</p>
+            </div>
+        </article>
+
+        <aside class="detail-side">
+            <article class="panel info-card">
+                <header><h2>Thông tin biểu ghi</h2><p>Lịch sử cập nhật hiện có</p></header>
+                <dl class="mini-meta">
+                    <div><dt>Ngày tạo</dt><dd th:text="${#temporals.format(material.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</dd></div>
+                    <div><dt>Cập nhật gần nhất</dt><dd th:text="${#temporals.format(material.updatedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</dd></div>
+                    <div><dt>Tác giả</dt><dd>
+                        <span th:if="${#sets.isEmpty(material.authors)}">Chưa cập nhật</span>
+                        <span th:each="author, stat : ${material.authors}"><span th:text="${author.name}">Tác giả</span><span th:if="${!stat.last}">, </span></span>
+                    </dd></div>
+                </dl>
+            </article>
+
+            <article class="panel sharing-card" th:if="${canEdit}">
+                <header><h2>Chia sẻ tài liệu</h2><p>Đưa tài liệu vào danh sách Được chia sẻ của người nhận</p></header>
+                <form class="share-form" th:action="@{/materials/{id}/share(id=${material.id})}" method="post">
+                    <label class="sr-only" for="recipientId">Người nhận</label>
+                    <select id="recipientId" name="recipientId" required th:disabled="${#lists.isEmpty(shareRecipients)}">
+                        <option value="">Chọn người nhận</option>
+                        <option th:each="recipient : ${shareRecipients}" th:value="${recipient.id}"
+                                th:text="${recipient.fullName + ' · ' + recipient.role.label}">Người nhận</option>
+                    </select>
+                    <button class="button button-primary" type="submit" th:disabled="${#lists.isEmpty(shareRecipients)}"><svg th:replace="~{fragments/icons :: icon('share-2')}"></svg>Chia sẻ</button>
+                </form>
+                <p class="share-hint" th:if="${#lists.isEmpty(shareRecipients)}">Không còn tài khoản phù hợp để chia sẻ.</p>
+                <div class="share-list" th:unless="${#lists.isEmpty(materialShares)}">
+                    <div class="share-item" th:each="share : ${materialShares}">
+                        <span class="list-avatar" aria-hidden="true" th:text="${share.sharedWith.initials}">ND</span>
+                        <span><strong th:text="${share.sharedWith.fullName}">Người dùng</strong><small th:text="${'Chia sẻ ' + #temporals.format(share.sharedAt, 'dd/MM/yyyy HH:mm')}">Thời gian</small></span>
+                        <form th:action="@{/materials/{id}/shares/{recipientId}/delete(id=${material.id},recipientId=${share.sharedWith.id})}"
+                              method="post" data-confirm="Gỡ tài liệu khỏi danh sách Được chia sẻ của người dùng này?">
+                            <button class="icon-action danger" type="submit" aria-label="Gỡ khỏi danh sách được chia sẻ" title="Gỡ chia sẻ"><svg th:replace="~{fragments/icons :: icon('x')}"></svg></button>
+                        </form>
+                    </div>
+                </div>
+                <p class="share-hint" th:if="${#lists.isEmpty(materialShares)}">Tài liệu chưa được chia sẻ trực tiếp cho ai.</p>
+            </article>
+
+            <article class="panel info-card" th:if="${canEdit}">
+                <header><h2>Nhật ký thao tác</h2><p>Chỉ quản trị viên và cán bộ biên mục được xem</p></header>
+                <div class="audit-list" th:unless="${#lists.isEmpty(materialAuditLogs)}">
+                    <div class="audit-item" th:each="log : ${materialAuditLogs}">
+                        <strong th:text="${log.action == T(vn.edu.doculib.model.MaterialAuditAction).CREATED ? 'Tạo tài liệu' :
+                            log.action == T(vn.edu.doculib.model.MaterialAuditAction).UPDATED ? 'Cập nhật tài liệu' :
+                            log.action == T(vn.edu.doculib.model.MaterialAuditAction).SHARED ? 'Chia sẻ tài liệu' :
+                            log.action == T(vn.edu.doculib.model.MaterialAuditAction).SHARE_REVOKED ? 'Gỡ chia sẻ' :
+                            log.action == T(vn.edu.doculib.model.MaterialAuditAction).MOVED_TO_TRASH ? 'Chuyển vào thùng rác' : 'Khôi phục tài liệu'}">Thao tác</strong>
+                        <small><span th:text="${log.actorUsername}">người dùng</span> · <time th:datetime="${log.occurredAt}" th:text="${#temporals.format(log.occurredAt, 'dd/MM/yyyy HH:mm')}">thời gian</time></small>
+                        <p th:if="${log.details}" th:text="${log.details}">Chi tiết</p>
+                    </div>
+                </div>
+                <p class="share-hint" th:if="${#lists.isEmpty(materialAuditLogs)}">Chưa có thao tác được ghi nhận.</p>
+            </article>
+
+            <article class="panel help-card">
+                <span><svg th:replace="~{fragments/icons :: icon('info')}"></svg></span><div><strong>Gợi ý nghiệp vụ</strong><p>Kiểm tra ISBN, tác giả và ký hiệu xếp giá trước khi chuyển biểu ghi sang trạng thái Sẵn sàng.</p></div>
+            </article>
+
+            <article class="panel danger-zone" th:if="${isAdmin}">
+                <div><h2>Chuyển vào thùng rác</h2><p>Tài liệu sẽ ẩn khỏi kho và có thể được quản trị viên khôi phục.</p></div>
+                <form th:action="@{/materials/{id}/delete(id=${material.id})}" method="post" data-confirm="Chuyển tài liệu này vào thùng rác?">
+                    <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+                    <button class="button button-danger-ghost button-full" type="submit"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg>Đưa vào thùng rác</button>
+                </form>
+            </article>
+        </aside>
+    </section>
+</main>
+</html>

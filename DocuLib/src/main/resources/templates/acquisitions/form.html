@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${editing ? 'Chỉnh sửa đề xuất' : 'Tạo đề xuất'}, ~{::main})}">
+<main class="page-content narrow-content">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/acquisitions}">Phát triển nguồn</a><span>/</span><span th:text="${editing ? acquisitionRequest.requestCode : 'Đề xuất mới'}">Đề xuất mới</span></div>
+            <h1 th:text="${editing ? 'Chỉnh sửa đề xuất bổ sung' : 'Tạo đề xuất bổ sung'}">Tạo đề xuất bổ sung</h1>
+            <p>Ghi nhận nhu cầu tài liệu và thông tin cần thiết cho quá trình thẩm định.</p>
+        </div>
+    </section>
+
+    <form th:action="@{/acquisitions/save}" th:object="${acquisitionRequest}" method="post" class="form-stack" data-loading-form>
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" th:field="*{version}">
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+        <div class="flash flash-error" role="alert" th:if="${#fields.hasGlobalErrors()}">
+            <span><svg th:replace="~{fragments/icons :: icon('circle-alert')}"></svg></span>
+            <span th:each="error : ${#fields.globalErrors()}" th:text="${error.defaultMessage}">Không thể lưu đề xuất.</span>
+        </div>
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">01</span><div><h2>Nhu cầu tài liệu</h2><p>Nội dung chính và người đưa ra đề xuất.</p></div></header>
+            <div class="form-grid">
+                <div class="field span-2">
+                    <label for="proposedTitle">Tên tài liệu đề xuất <span class="required">*</span></label>
+                    <input id="proposedTitle" th:field="*{proposedTitle}" required maxlength="300" th:classappend="${#fields.hasErrors('proposedTitle')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('proposedTitle')}" aria-describedby="proposedTitle-error" placeholder="Nhan đề hoặc tên bộ sưu tập cần bổ sung" autofocus>
+                    <small class="field-error" id="proposedTitle-error" role="alert" th:errors="*{proposedTitle}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="requester">Người / đơn vị đề xuất <span class="required">*</span></label>
+                    <input id="requester" th:field="*{requester}" required maxlength="150" th:classappend="${#fields.hasErrors('requester')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('requester')}" aria-describedby="requester-error" placeholder="Phòng Nghiên cứu">
+                    <small class="field-error" id="requester-error" role="alert" th:errors="*{requester}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="priority">Mức ưu tiên <span class="required">*</span></label>
+                    <select id="priority" th:field="*{priority}" required th:aria-invalid="${#fields.hasErrors('priority')}" aria-describedby="priority-error">
+                        <option th:each="item : ${priorities}" th:value="${item}" th:text="${item.label}">Trung bình</option>
+                    </select>
+                    <small class="field-error" id="priority-error" role="alert" th:errors="*{priority}">Lỗi</small>
+                </div>
+                <div class="field span-2">
+                    <label for="reason">Lý do bổ sung <span class="required">*</span></label>
+                    <textarea id="reason" rows="4" th:field="*{reason}" required maxlength="1000" th:classappend="${#fields.hasErrors('reason')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('reason')}" aria-describedby="reason-error" placeholder="Nêu nhu cầu sử dụng, nhóm người dùng và giá trị của tài liệu..."></textarea>
+                    <small class="field-error" id="reason-error" role="alert" th:errors="*{reason}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">02</span><div><h2>Kinh phí &amp; tiến độ</h2><p>Số lượng, dự toán và trạng thái xử lý hiện tại.</p></div></header>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="quantity">Số lượng <span class="required">*</span></label>
+                    <input id="quantity" type="number" min="1" th:field="*{quantity}" required th:classappend="${#fields.hasErrors('quantity')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('quantity')}" aria-describedby="quantity-error">
+                    <small class="field-error" id="quantity-error" role="alert" th:errors="*{quantity}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="estimatedPrice">Đơn giá dự kiến (VNĐ)</label>
+                    <input id="estimatedPrice" type="number" min="0" step="1000" th:field="*{estimatedPrice}" th:classappend="${#fields.hasErrors('estimatedPrice')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('estimatedPrice')}" aria-describedby="estimatedPrice-hint estimatedPrice-error" placeholder="500000">
+                    <small class="field-hint" id="estimatedPrice-hint">Tổng dự toán = đơn giá × số lượng</small><small class="field-error" id="estimatedPrice-error" role="alert" th:errors="*{estimatedPrice}">Lỗi</small>
+                </div>
+                <div class="field span-2">
+                    <label for="status">Trạng thái quy trình <span class="required">*</span></label>
+                    <select id="status" th:field="*{status}" required data-workflow-status th:aria-invalid="${#fields.hasErrors('status')}" aria-describedby="status-hint status-error">
+                        <option th:each="item : ${workflowStatuses}" th:value="${item}" th:text="${item.label}">Mới đề xuất</option>
+                    </select>
+                    <small class="field-hint" id="status-hint">Chỉ cho phép chuyển sang bước kế tiếp; có thể từ chối ở hai bước đầu.</small>
+                    <small class="field-error" id="status-error" role="alert" th:errors="*{status}">Lỗi</small>
+                </div>
+                <div class="field span-2">
+                    <label for="note">Ghi chú xử lý</label>
+                    <textarea id="note" rows="4" maxlength="1000" th:field="*{note}" data-rejection-note th:classappend="${#fields.hasErrors('note')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('note')}" aria-describedby="note-hint note-error" placeholder="Nhà cung cấp, báo giá, ý kiến thẩm định..."></textarea>
+                    <small class="field-hint" id="note-hint">Bắt buộc nhập lý do nếu chọn Từ chối.</small>
+                    <small class="field-error" id="note-error" role="alert" th:errors="*{note}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel form-section" th:if="${editing}">
+            <header class="form-section-header"><span class="section-number">03</span><div><h2>Lịch sử trạng thái</h2><p>Người thực hiện, thời gian và ghi chú của từng lần chuyển bước.</p></div></header>
+            <div class="audit-list workflow-history" th:unless="${#lists.isEmpty(statusHistory)}">
+                <div class="audit-item" th:each="entry : ${statusHistory}">
+                    <strong><span th:text="${entry.fromStatus != null ? entry.fromStatus.label : 'Khởi tạo'}">Khởi tạo</span> → <span th:text="${entry.toStatus.label}">Mới đề xuất</span></strong>
+                    <small><span th:text="${entry.actorUsername}">người dùng</span> · <time th:datetime="${entry.changedAt}" th:text="${#temporals.format(entry.changedAt, 'dd/MM/yyyy HH:mm')}">thời gian</time></small>
+                    <p th:text="${entry.note}">Ghi chú</p>
+                </div>
+            </div>
+            <p class="share-hint" th:if="${#lists.isEmpty(statusHistory)}">Chưa có lần chuyển trạng thái nào.</p>
+        </section>
+
+        <div class="form-actions sticky-actions">
+            <a class="button button-ghost" th:href="${returnUrl}">Hủy</a>
+            <button class="button button-primary" type="submit"><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg><span th:text="${editing ? 'Lưu thay đổi' : 'Gửi đề xuất'}">Gửi đề xuất</span></button>
+        </div>
+    </form>
+</main>
+</html>

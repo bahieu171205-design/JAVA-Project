@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${editing ? 'Chỉnh sửa người dùng' : 'Thêm người dùng'}, ~{::main})}">
+<main class="page-content narrow-content">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/users}">Người dùng &amp; phân quyền</a><span>/</span><span th:text="${editing ? 'Chỉnh sửa' : 'Tạo mới'}">Tạo mới</span></div>
+            <h1 th:text="${editing ? 'Chỉnh sửa tài khoản' : 'Thêm người dùng mới'}">Thêm người dùng mới</h1>
+            <p>Thiết lập thông tin đăng nhập, vai trò và trạng thái truy cập.</p>
+        </div>
+    </section>
+
+    <form th:action="@{/users/save}" th:object="${userAccountForm}" method="post" class="form-stack" data-loading-form>
+        <input type="hidden" th:field="*{id}">
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">01</span><div><h2>Thông tin tài khoản</h2><p>Thông tin nhận diện và liên hệ của người dùng.</p></div></header>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="username">Tên đăng nhập <span class="required">*</span></label>
+                    <input id="username" th:field="*{username}" required minlength="3" maxlength="60" th:readonly="${editing}" th:classappend="${#fields.hasErrors('username')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('username')}" aria-describedby="username-hint username-error" autocomplete="off" placeholder="nguyen.van.a">
+                    <small class="field-hint" id="username-hint" th:text="${editing ? 'Tên đăng nhập không thể thay đổi sau khi tạo.' : 'Dùng chữ, số, dấu chấm, gạch dưới hoặc gạch ngang.'}">Quy tắc tên đăng nhập.</small><small class="field-error" id="username-error" role="alert" th:errors="*{username}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="fullName">Họ và tên <span class="required">*</span></label>
+                    <input id="fullName" th:field="*{fullName}" required maxlength="150" th:classappend="${#fields.hasErrors('fullName')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('fullName')}" aria-describedby="fullName-error" autocomplete="name" placeholder="Nguyễn Văn A">
+                    <small class="field-error" id="fullName-error" role="alert" th:errors="*{fullName}">Lỗi</small>
+                </div>
+                <div class="field span-2">
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input id="email" type="email" th:field="*{email}" required maxlength="150" th:classappend="${#fields.hasErrors('email')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('email')}" aria-describedby="email-error" autocomplete="email" placeholder="user@doculib.local">
+                    <small class="field-error" id="email-error" role="alert" th:errors="*{email}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">02</span><div><h2>Vai trò &amp; quyền truy cập</h2><p>Quy định những thao tác người dùng được phép thực hiện.</p></div></header>
+            <div class="form-grid">
+                <div class="field span-2">
+                    <label for="role">Vai trò <span class="required">*</span></label>
+                    <select id="role" th:field="*{role}" required th:classappend="${#fields.hasErrors('role')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('role')}" aria-describedby="role-error">
+                        <option th:each="roleItem : ${userRoles}" th:value="${roleItem}" th:text="${roleItem.label + ' · ' + roleItem.description}">Vai trò</option>
+                    </select>
+                    <small class="field-error" id="role-error" role="alert" th:errors="*{role}">Lỗi</small>
+                </div>
+                <div class="field span-2">
+                    <label class="switch-field" for="enabled" data-switch-field>
+                        <input id="enabled" type="checkbox" th:field="*{enabled}" th:aria-invalid="${#fields.hasErrors('enabled')}" aria-describedby="enabled-error">
+                        <span class="switch-control" aria-hidden="true"></span>
+                        <span><strong>Cho phép đăng nhập</strong><small data-switch-status th:text="${userAccountForm.enabled ? 'Tài khoản đang được phép đăng nhập.' : 'Tài khoản đang bị khóa đăng nhập.'}">Trạng thái đăng nhập</small></span>
+                    </label>
+                    <small class="field-error" id="enabled-error" role="alert" th:errors="*{enabled}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">03</span><div><h2 th:text="${editing ? 'Đặt lại mật khẩu' : 'Mật khẩu đăng nhập'}">Mật khẩu đăng nhập</h2><p th:text="${editing ? 'Để trống nếu không muốn thay đổi mật khẩu hiện tại.' : 'Sử dụng tối thiểu 8 ký tự và gửi an toàn cho người dùng.'}">Sử dụng tối thiểu 8 ký tự.</p></div></header>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="newPassword">Mật khẩu <span class="required" th:unless="${editing}">*</span></label>
+                    <div class="password-field"><input id="newPassword" type="password" th:field="*{password}" th:required="${!editing}" minlength="8" maxlength="72" th:classappend="${#fields.hasErrors('password')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('password')}" aria-describedby="password-error" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự"><button type="button" data-password-toggle aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button></div>
+                    <small class="field-error" id="password-error" role="alert" th:errors="*{password}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="confirmPassword">Xác nhận mật khẩu <span class="required" th:unless="${editing}">*</span></label>
+                    <div class="password-field"><input id="confirmPassword" type="password" th:field="*{confirmPassword}" th:required="${!editing}" minlength="8" maxlength="72" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('confirmPassword')}" aria-describedby="confirmPassword-error" autocomplete="new-password" placeholder="Nhập lại mật khẩu"><button type="button" data-password-toggle aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button></div>
+                    <small class="field-error" id="confirmPassword-error" role="alert" th:errors="*{confirmPassword}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <div class="form-actions sticky-actions"><a class="button button-ghost" th:href="@{/users}">Hủy</a><button class="button button-primary" type="submit"><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg><span th:text="${editing ? 'Lưu thay đổi' : 'Tạo tài khoản'}">Tạo tài khoản</span></button></div>
+    </form>
+</main>
+</html>

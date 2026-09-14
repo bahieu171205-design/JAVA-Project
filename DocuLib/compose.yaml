@@ -1,0 +1,23 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: doculib-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: doculib_library
+      MYSQL_USER: doculib_user
+      MYSQL_PASSWORD: doculib_password
+      MYSQL_ROOT_PASSWORD: doculib_root_password
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3306:3306"
+    volumes:
+      - doculib_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pdoculib_root_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  doculib_mysql_data:

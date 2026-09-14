@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#ffffff" data-theme-color><title>Không tìm thấy · DocuLib</title><script th:src="@{/js/theme-init.js}"></script><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body class="error-page">
+<main class="error-card">
+    <span class="error-code">404</span><h1>Không tìm thấy dữ liệu</h1>
+    <p th:text="${errorMessage ?: 'Trang hoặc dữ liệu bạn yêu cầu không tồn tại.'}">Không tìm thấy</p>
+    <a class="button button-primary" th:href="@{/}">Về trang tổng quan</a>
+</main>
+</body>
+</html>

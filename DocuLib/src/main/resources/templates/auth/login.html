@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Đăng nhập hệ thống quản lý tài liệu DocuLib">
+    <meta name="theme-color" content="#ffffff" data-theme-color>
+    <link rel="icon" href="data:,">
+    <title>Đăng nhập · DocuLib</title>
+    <script th:src="@{/js/theme-init.js}"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="auth-page">
+<main class="auth-shell">
+    <section class="auth-intro" aria-label="Giới thiệu hệ thống">
+        <a class="auth-brand" th:href="@{/login}"><span><strong>DocuLib</strong><small>Quản lý tài liệu</small></span></a>
+        <div class="auth-intro-copy">
+            <span class="auth-eyebrow">TRUNG TÂM TÀI NGUYÊN &amp; DỮ LIỆU</span>
+            <h1>Một không gian an toàn cho toàn bộ nguồn tài liệu.</h1>
+            <p>Biên mục, phát triển nguồn và kiểm soát quyền truy cập trên cùng một hệ thống.</p>
+        </div>
+        <div class="auth-feature-list">
+            <span><i><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg></i> Dữ liệu tập trung và nhất quán</span>
+            <span><i><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg></i> Phân quyền theo vai trò nghiệp vụ</span>
+            <span><i><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg></i> Mật khẩu được mã hóa an toàn</span>
+        </div>
+        <small class="auth-copyright">DocuLib · Hệ thống nội bộ</small>
+    </section>
+
+    <section class="auth-form-area">
+        <div class="auth-card">
+            <div class="auth-card-heading"><h2>Đăng nhập hệ thống</h2><p>Sử dụng tài khoản đã được quản trị viên cấp.</p></div>
+
+            <div class="auth-alert auth-alert-error" th:if="${param.error}" role="alert">
+                <span><svg th:replace="~{fragments/icons :: icon('circle-alert')}"></svg></span><div><strong>Không thể đăng nhập</strong><p>Tên đăng nhập, mật khẩu không đúng hoặc tài khoản đã bị khóa.</p></div>
+            </div>
+            <div class="auth-alert auth-alert-error" th:if="${param.expired}" role="alert">
+                <span><svg th:replace="~{fragments/icons :: icon('circle-alert')}"></svg></span><div><strong>Phiên đăng nhập đã hết hiệu lực</strong><p>Quyền truy cập, mật khẩu hoặc trạng thái tài khoản vừa thay đổi. Vui lòng đăng nhập lại.</p></div>
+            </div>
+            <div class="auth-alert auth-alert-success" th:if="${param.logout}" role="status">
+                <span><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg></span><div><strong>Đã đăng xuất</strong><p>Phiên làm việc của bạn đã kết thúc an toàn.</p></div>
+            </div>
+
+            <form class="auth-form" th:action="@{/login}" method="post" data-loading-form>
+                <div class="field">
+                    <label for="username">Tên đăng nhập</label>
+                    <input id="username" name="username" autocomplete="username" autocapitalize="none" required autofocus placeholder="Nhập tên đăng nhập">
+                </div>
+                <div class="field">
+                    <label for="password">Mật khẩu</label>
+                    <div class="password-field">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Nhập mật khẩu">
+                        <button type="button" data-password-toggle aria-label="Hiện mật khẩu" aria-pressed="false">Hiện</button>
+                    </div>
+                </div>
+                <button class="button button-primary auth-submit" type="submit">Đăng nhập <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></button>
+            </form>
+
+            <div class="auth-help"><span><svg th:replace="~{fragments/icons :: icon('info')}"></svg></span><p>Liên hệ quản trị viên nếu bạn quên mật khẩu hoặc chưa được cấp tài khoản.</p></div>
+        </div>
+    </section>
+</main>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

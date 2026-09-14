@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Người dùng & phân quyền', ~{::main})}">
+<main class="page-content">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/}">Tổng quan</a><span>/</span><span>Người dùng &amp; phân quyền</span></div>
+            <h1>Quản lý người dùng</h1>
+            <p>Cấp tài khoản, phân vai trò và kiểm soát trạng thái truy cập hệ thống.</p>
+        </div>
+        <a class="button button-primary" th:href="@{/users/new}"><svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Thêm người dùng</a>
+    </section>
+
+    <section class="permission-summary" aria-label="Mô tả vai trò">
+        <article><span class="permission-icon admin"><svg th:replace="~{fragments/icons :: icon('lock-keyhole')}"></svg></span><div><strong>Quản trị viên</strong><p>Quản lý tài khoản, dữ liệu dùng chung và mọi thao tác xóa.</p></div></article>
+        <article><span class="permission-icon librarian"><svg th:replace="~{fragments/icons :: icon('pencil')}"></svg></span><div><strong>Cán bộ biên mục</strong><p>Tạo, chỉnh sửa tài liệu và xử lý đề xuất bổ sung.</p></div></article>
+        <article><span class="permission-icon viewer"><svg th:replace="~{fragments/icons :: icon('eye')}"></svg></span><div><strong>Người xem</strong><p>Tra cứu, xem dashboard và chi tiết tài liệu.</p></div></article>
+    </section>
+
+    <section class="panel table-panel">
+        <header class="panel-header table-heading"><div><h2>Danh sách tài khoản</h2><p><strong th:text="${#lists.size(accounts)}">0</strong> tài khoản trong hệ thống</p></div></header>
+        <div class="table-scroll">
+            <table class="data-table responsive-table user-table">
+                <thead><tr><th>Người dùng</th><th>Tên đăng nhập</th><th>Vai trò</th><th>Trạng thái phiên</th><th>Quyền truy cập</th><th>Cập nhật</th><th class="action-column">Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="account : ${accounts}">
+                    <td data-label="Người dùng">
+                        <div class="user-cell"><span class="avatar" th:text="${account.initials}">ND</span><span><strong th:text="${account.fullName}">Người dùng</strong><small th:text="${account.email}">email@doculib.local</small></span></div>
+                    </td>
+                    <td data-label="Tên đăng nhập"><span class="mono-code" th:text="${account.username}">username</span><small th:if="${currentUser != null and account.id == currentUser.id}" class="current-account-label">Tài khoản hiện tại</small></td>
+                    <td data-label="Vai trò"><span class="badge" th:classappend="${'badge-' + account.role.badgeClass}" th:text="${account.role.label}">Vai trò</span></td>
+                    <td data-label="Trạng thái phiên">
+                        <span class="account-status" th:with="online=${onlineUsernames.contains(#strings.toLowerCase(account.username))}"
+                              th:classappend="${online ? 'online' : 'offline'}">
+                            <i></i><span th:text="${online ? 'Online' : 'Offline'}">Offline</span>
+                        </span>
+                    </td>
+                    <td data-label="Quyền truy cập"><span class="badge" th:classappend="${account.enabled ? 'badge-success' : 'badge-danger'}" th:text="${account.enabled ? 'Hoạt động' : 'Bị khóa'}">Hoạt động</span></td>
+                    <td data-label="Cập nhật"><time th:text="${#temporals.format(account.updatedAt, 'dd/MM/yyyy')}">25/08/2026</time><small th:text="${#temporals.format(account.updatedAt, 'HH:mm')}">10:30</small></td>
+                    <td data-label="Thao tác">
+                        <div class="row-actions">
+                            <a class="icon-action" th:href="@{/users/{id}/edit(id=${account.id})}" title="Chỉnh sửa" aria-label="Chỉnh sửa tài khoản"><svg th:replace="~{fragments/icons :: icon('pencil')}"></svg></a>
+                            <form th:action="@{/users/{id}/toggle(id=${account.id})}" method="post"
+                                  th:data-confirm="${account.enabled ? 'Vô hiệu hóa tài khoản này?' : 'Kích hoạt lại tài khoản này?'}">
+                                <button class="icon-action" th:classappend="${account.enabled ? 'danger' : ''}" type="submit"
+                                        th:disabled="${currentUser != null and account.id == currentUser.id}"
+                                        th:title="${account.enabled ? 'Vô hiệu hóa' : 'Kích hoạt'}"
+                                        th:aria-label="${account.enabled ? 'Vô hiệu hóa tài khoản' : 'Kích hoạt tài khoản'}">
+                                    <th:block th:if="${account.enabled}"><svg th:replace="~{fragments/icons :: icon('circle-slash')}"></svg></th:block>
+                                    <th:block th:unless="${account.enabled}"><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg></th:block>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</html>

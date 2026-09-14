@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Tổng quan', ~{::main})}">
+<main class="page-content dashboard-page">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><span>Tổng quan</span></div>
+            <h1>Chào mừng trở lại</h1>
+            <p th:text="${todayLabel + ' · Theo dõi kho tài liệu và tiến độ nghiệp vụ.'}">Theo dõi kho tài liệu và tiến độ nghiệp vụ.</p>
+        </div>
+        <div class="heading-actions" th:if="${canEdit}">
+            <a class="button button-secondary" th:href="@{/acquisitions/new}"><svg th:replace="~{fragments/icons :: icon('clipboard-plus')}"></svg> Tạo đề xuất</a>
+            <a class="button button-primary" th:href="@{/materials/new}"><svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Thêm tài liệu</a>
+        </div>
+    </section>
+
+    <section class="metric-grid" aria-label="Chỉ số tổng quan">
+        <article class="metric-card">
+            <div class="metric-card-top"><span class="metric-icon"><svg th:replace="~{fragments/icons :: icon('file-text')}"></svg></span><small>Tổng tài liệu</small></div>
+            <strong th:text="${#numbers.formatInteger(stats.materialTitles, 1, 'POINT')}">0</strong>
+            <p th:text="${#numbers.formatInteger(stats.totalCopies, 1, 'POINT') + ' bản đang quản lý'}">0 bản đang quản lý</p>
+        </article>
+        <article class="metric-card">
+            <div class="metric-card-top"><span class="metric-icon success"><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg></span><small>Sẵn sàng</small></div>
+            <strong th:text="${#numbers.formatInteger(stats.availableTitles, 1, 'POINT')}">0</strong>
+            <p th:text="${stats.availablePercent + '% toàn bộ kho'}">0% toàn bộ kho</p>
+        </article>
+        <article class="metric-card">
+            <div class="metric-card-top"><span class="metric-icon warning"><svg th:replace="~{fragments/icons :: icon('clock-3')}"></svg></span><small>Cần xử lý</small></div>
+            <strong th:text="${stats.pendingAcquisitions}">0</strong>
+            <p>Đề xuất đang chờ thẩm định</p>
+        </article>
+        <article class="metric-card">
+            <div class="metric-card-top"><span class="metric-icon info"><svg th:replace="~{fragments/icons :: icon('badge-check')}"></svg></span><small>Chất lượng dữ liệu</small></div>
+            <strong th:text="${stats.catalogQualityPercent + '%'}">0%</strong>
+            <p>Biểu ghi đủ trường quan trọng</p>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="panel panel-wide">
+            <header class="panel-header">
+                <div><h2>Tài liệu cập nhật gần đây</h2><p>Các biểu ghi mới nhất trong kho tài liệu</p></div>
+                <a class="text-link" th:href="@{/materials(view='recent',sort='updated_desc')}">Xem tất cả <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></a>
+            </header>
+            <div class="table-scroll">
+                <table class="data-table compact-table">
+                    <thead><tr><th>Tài liệu</th><th>Loại</th><th>Chủ đề</th><th>Số bản</th><th>Trạng thái</th><th><span class="sr-only">Mở</span></th></tr></thead>
+                    <tbody>
+                    <tr th:each="material : ${recentMaterials}">
+                        <td data-label="Tài liệu">
+                            <div class="resource-cell">
+                                <span class="resource-symbol" th:text="${material.materialType == T(vn.edu.doculib.model.MaterialType).EBOOK ? 'E' : 'T'}">T</span>
+                                <span class="resource-copy"><a class="title-link" th:href="@{/materials/{id}(id=${material.id})}" th:text="${material.title}" th:title="${material.title}">Nhan đề</a><small class="mono-inline" th:text="${material.inventoryCode}">TL-001</small></span>
+                            </div>
+                        </td>
+                        <td data-label="Loại" th:text="${material.materialType.label}">Sách</td>
+                        <td data-label="Chủ đề" th:text="${material.category != null ? material.category.name : 'Chưa phân loại'}">Chủ đề</td>
+                        <td data-label="Số bản" th:text="${material.quantity}">1</td>
+                        <td data-label="Trạng thái"><span class="badge" th:classappend="${'badge-' + material.status.badgeClass}" th:text="${material.status.label}">Sẵn sàng</span></td>
+                        <td class="action-column"><a class="icon-action" th:href="@{/materials/{id}(id=${material.id})}" title="Xem chi tiết" aria-label="Xem chi tiết"><svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty-state small" th:if="${#lists.isEmpty(recentMaterials)}">
+                <span class="empty-icon"><svg th:replace="~{fragments/icons :: icon('file-text')}"></svg></span><h3>Chưa có tài liệu</h3><p>Hãy thêm biểu ghi đầu tiên vào hệ thống.</p>
+            </div>
+        </article>
+
+        <aside class="dashboard-side">
+            <article class="panel summary-panel">
+                <header class="panel-header"><div><h2>Trạng thái kho</h2><p>Phân bố biểu ghi hiện tại</p></div></header>
+                <div class="summary-list">
+                    <div><span><i class="summary-status-icon success"><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg></i>Sẵn sàng</span><strong th:text="${stats.availableTitles}">0</strong><small th:text="${stats.availablePercent + '%'}">0%</small></div>
+                    <div><span><i class="summary-status-icon info"><svg th:replace="~{fragments/icons :: icon('clock-3')}"></svg></i>Đang xử lý</span><strong th:text="${stats.processingTitles}">0</strong><small th:text="${stats.processingPercent + '%'}">0%</small></div>
+                    <div><span><i class="summary-status-icon warning"><svg th:replace="~{fragments/icons :: icon('shield-alert')}"></svg></i>Hạn chế</span><strong th:text="${stats.limitedTitles}">0</strong><small th:text="${stats.limitedPercent + '%'}">0%</small></div>
+                    <div><span><i class="summary-status-icon muted"><svg th:replace="~{fragments/icons :: icon('archive')}"></svg></i>Lưu trữ</span><strong th:text="${stats.archivedTitles}">0</strong><small th:text="${stats.archivedPercent + '%'}">0%</small></div>
+                </div>
+                <a class="button button-secondary button-full" th:href="@{/materials}">Mở kho tài liệu</a>
+            </article>
+
+            <article class="panel quick-panel">
+                <header class="panel-header"><div><h2>Thao tác nhanh</h2><p>Công việc thường dùng</p></div></header>
+                <nav class="quick-links" aria-label="Thao tác nhanh">
+                    <a th:if="${canEdit}" th:href="@{/materials/new}"><span><svg th:replace="~{fragments/icons :: icon('plus')}"></svg></span><span><strong>Thêm tài liệu</strong><small>Tạo biểu ghi biên mục</small></span><b><svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg></b></a>
+                    <a th:if="${canEdit}" th:href="@{/acquisitions/new}"><span><svg th:replace="~{fragments/icons :: icon('clipboard-plus')}"></svg></span><span><strong>Tạo đề xuất</strong><small>Ghi nhận nhu cầu bổ sung</small></span><b><svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg></b></a>
+                    <a th:href="@{/reference-data}"><span><svg th:replace="~{fragments/icons :: icon('database')}"></svg></span><span><strong>Dữ liệu danh mục</strong><small>Tác giả, chủ đề, nhà xuất bản</small></span><b><svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg></b></a>
+                </nav>
+            </article>
+        </aside>
+    </section>
+
+    <section class="panel acquisition-overview">
+        <header class="panel-header">
+            <div><h2>Đề xuất bổ sung gần đây</h2><p>Tiến độ phát triển nguồn tài liệu</p></div>
+            <a class="text-link" th:href="@{/acquisitions}">Quản lý đề xuất <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></a>
+        </header>
+        <div class="activity-list">
+            <a class="activity-item" th:each="request : ${recentAcquisitions}"
+               th:href="${canEdit} ? @{/acquisitions/{id}/edit(id=${request.id})} : @{/acquisitions}">
+                <span class="activity-symbol"><svg th:replace="~{fragments/icons :: icon('clipboard-plus')}"></svg></span>
+                <span><strong th:text="${request.proposedTitle}">Tài liệu đề xuất</strong><small><span th:text="${request.requestCode}">BS-001</span> · <span th:text="${request.requester}">Người đề xuất</span></small></span>
+                <span class="badge" th:classappend="${'badge-' + request.status.badgeClass}" th:text="${request.status.label}">Mới</span>
+                <time th:text="${#temporals.format(request.requestedAt, 'dd/MM/yyyy')}">25/08/2026</time>
+            </a>
+        </div>
+        <div class="empty-state small" th:if="${#lists.isEmpty(recentAcquisitions)}">Chưa có đề xuất bổ sung.</div>
+    </section>
+</main>
+</html>

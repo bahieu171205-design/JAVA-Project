@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Phát triển nguồn', ~{::main})}">
+<main class="page-content">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/}">Tổng quan</a><span>/</span><span>Phát triển nguồn</span></div>
+            <h1>Đề xuất bổ sung</h1>
+            <p>Theo dõi nhu cầu, thẩm định ngân sách và tiến độ tiếp nhận tài liệu.</p>
+        </div>
+        <a class="button button-primary" th:if="${canEdit}" th:href="@{/acquisitions/new(returnUrl=${returnUrl})}"><svg th:replace="~{fragments/icons :: icon('clipboard-plus')}"></svg> Tạo đề xuất</a>
+    </section>
+
+    <section class="workflow-strip" aria-label="Quy trình bổ sung">
+        <div><span>1</span><p><strong>Mới đề xuất</strong><small>Ghi nhận nhu cầu</small></p></div><i><svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></i>
+        <div><span>2</span><p><strong>Đang thẩm định</strong><small>Đánh giá nội dung</small></p></div><i><svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></i>
+        <div><span>3</span><p><strong>Đã phê duyệt</strong><small>Xác nhận ngân sách</small></p></div><i><svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></i>
+        <div><span>4</span><p><strong>Đã đặt mua</strong><small>Theo dõi đơn hàng</small></p></div><i><svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></i>
+        <div><span>5</span><p><strong>Đã tiếp nhận</strong><small>Chuyển sang biên mục</small></p></div>
+    </section>
+
+    <section class="panel filter-panel">
+        <form class="filter-grid acquisition-filter" th:action="@{/acquisitions}" method="get" data-loading-form>
+            <div class="field field-search">
+                <label for="query">Tìm kiếm</label>
+                <div class="input-with-icon"><span><svg th:replace="~{fragments/icons :: icon('search')}"></svg></span><input id="query" name="query" th:value="${query}" placeholder="Mã đề xuất, tên tài liệu hoặc người đề xuất"></div>
+            </div>
+            <div class="field">
+                <label for="status">Trạng thái</label>
+                <select id="status" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option th:each="item : ${acquisitionStatuses}" th:value="${item}" th:text="${item.label}" th:selected="${item == selectedStatus}">Mới đề xuất</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <a class="button button-ghost" th:href="@{/acquisitions}">Đặt lại</a>
+                <button class="button button-dark" type="submit">Lọc dữ liệu</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel table-panel">
+        <header class="panel-header table-heading">
+            <div><h2>Danh sách đề xuất</h2><p><strong th:text="${requestPage.totalElements}">0</strong> yêu cầu được ghi nhận</p></div>
+        </header>
+        <div class="table-scroll">
+            <table class="data-table responsive-table">
+                <thead><tr><th>Đề xuất</th><th>Người đề xuất</th><th>Ưu tiên</th><th>Kinh phí dự kiến</th><th>Trạng thái</th><th class="action-column">Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="request : ${requestPage.content}">
+                    <td data-label="Đề xuất">
+                        <a class="title-link" th:if="${canEdit}" th:href="@{/acquisitions/{id}/edit(id=${request.id},returnUrl=${returnUrl})}" th:text="${request.proposedTitle}">Tài liệu</a>
+                        <strong class="read-only-title" th:unless="${canEdit}" th:text="${request.proposedTitle}">Tài liệu</strong>
+                        <small><span class="mono-inline" th:text="${request.requestCode}">BS-001</span> · <span th:text="${#temporals.format(request.requestedAt, 'dd/MM/yyyy')}">01/01/2026</span></small>
+                    </td>
+                    <td data-label="Người đề xuất"><span th:text="${request.requester}">Người đề xuất</span><small th:text="${request.quantity + ' bản'}">1 bản</small></td>
+                    <td data-label="Ưu tiên"><span class="badge" th:classappend="${'badge-' + request.priority.badgeClass}" th:text="${request.priority.label}">Cao</span></td>
+                    <td data-label="Kinh phí">
+                        <strong th:if="${request.estimatedPrice != null}" th:text="${#numbers.formatDecimal(request.estimatedPrice * request.quantity, 1, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</strong>
+                        <span class="muted" th:unless="${request.estimatedPrice != null}">Chưa dự toán</span>
+                    </td>
+                    <td data-label="Trạng thái">
+                        <form class="status-form" th:if="${canEdit}" th:action="@{/acquisitions/{id}/status(id=${request.id})}" method="post">
+                            <input type="hidden" name="version" th:value="${request.version}">
+                            <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+                            <label class="sr-only" th:for="${'status-' + request.id}">Trạng thái</label>
+                            <select name="status" th:id="${'status-' + request.id}" th:class="${'status-select status-' + request.status.badgeClass}" required>
+                                <option th:each="item : ${allowedStatuses[request.id]}" th:value="${item}" th:text="${item.label}" th:selected="${item == request.status}">Trạng thái</option>
+                            </select>
+                            <label class="sr-only" th:for="${'status-note-' + request.id}">Ghi chú hoặc lý do từ chối</label>
+                            <input class="status-note" th:id="${'status-note-' + request.id}" name="note" maxlength="1000" placeholder="Ghi chú / lý do từ chối">
+                            <button class="button button-secondary status-confirm" type="submit">Xác nhận</button>
+                        </form>
+                        <span class="badge" th:unless="${canEdit}" th:classappend="${'badge-' + request.status.badgeClass}" th:text="${request.status.label}">Trạng thái</span>
+                    </td>
+                    <td data-label="Thao tác">
+                        <div class="row-actions">
+                            <a class="icon-action" th:if="${canEdit}" th:href="@{/acquisitions/{id}/edit(id=${request.id},returnUrl=${returnUrl})}" title="Chỉnh sửa" aria-label="Chỉnh sửa đề xuất"><svg th:replace="~{fragments/icons :: icon('pencil')}"></svg></a>
+                            <form th:if="${isAdmin}" th:action="@{/acquisitions/{id}/delete(id=${request.id})}" method="post" data-confirm="Xóa đề xuất bổ sung này?">
+                                <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+                                <button class="icon-action danger" type="submit" title="Xóa" aria-label="Xóa đề xuất"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg></button>
+                            </form>
+                            <span class="muted" th:unless="${canEdit}">—</span>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" th:if="${requestPage.empty}">
+            <span class="empty-icon"><svg th:replace="~{fragments/icons :: icon('clipboard-plus')}"></svg></span><h3>Chưa có đề xuất phù hợp</h3><p>Tạo đề xuất mới hoặc thay đổi bộ lọc hiện tại.</p>
+            <a class="button button-secondary" th:if="${canEdit}" th:href="@{/acquisitions/new}"><svg th:replace="~{fragments/icons :: icon('clipboard-plus')}"></svg>Tạo đề xuất</a>
+        </div>
+        <footer class="pagination-wrap" th:if="${requestPage.totalPages > 1}">
+            <span>Trang <strong th:text="${requestPage.number + 1}">1</strong> / <span th:text="${requestPage.totalPages}">1</span></span>
+            <nav class="pagination" aria-label="Phân trang">
+                <a th:classappend="${requestPage.first} ? 'disabled'"
+                   th:href="${requestPage.first} ? '#' : @{/acquisitions(page=${requestPage.number - 1},query=${query},status=${selectedStatus})}" aria-label="Trang trước" title="Trang trước"><svg th:replace="~{fragments/icons :: icon('chevron-left')}"></svg></a>
+                <a th:each="pageNumber : ${#numbers.sequence(0, requestPage.totalPages - 1)}"
+                   th:classappend="${pageNumber == requestPage.number} ? 'active'"
+                   th:href="@{/acquisitions(page=${pageNumber},query=${query},status=${selectedStatus})}"
+                   th:text="${pageNumber + 1}">1</a>
+                <a th:classappend="${requestPage.last} ? 'disabled'"
+                   th:href="${requestPage.last} ? '#' : @{/acquisitions(page=${requestPage.number + 1},query=${query},status=${selectedStatus})}" aria-label="Trang sau" title="Trang sau"><svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg></a>
+            </nav>
+        </footer>
+    </section>
+</main>
+</html>

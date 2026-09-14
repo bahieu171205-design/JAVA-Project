@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#ffffff" data-theme-color><title>Có lỗi xảy ra · DocuLib</title><script th:src="@{/js/theme-init.js}"></script><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body class="error-page">
+<main class="error-card">
+    <span class="error-code" th:text="${status ?: '500'}">500</span><h1>Hệ thống chưa thể xử lý yêu cầu</h1>
+    <p>Vui lòng thử lại. Nếu lỗi tiếp diễn, hãy kiểm tra kết nối cơ sở dữ liệu và nhật ký ứng dụng.</p>
+    <a class="button button-primary" th:href="@{/}">Về trang tổng quan</a>
+</main>
+</body>
+</html>

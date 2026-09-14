@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Dữ liệu danh mục', ~{::main})}">
+<main class="page-content">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/}">Tổng quan</a><span>/</span><span>Dữ liệu danh mục</span></div>
+            <h1>Dữ liệu dùng chung</h1>
+            <p>Quản lý tác giả, chủ đề và nhà xuất bản dùng trong các biểu ghi.</p>
+        </div>
+    </section>
+
+    <nav class="anchor-tabs" aria-label="Loại danh mục">
+        <a href="#authors">Tác giả <span th:text="${#lists.size(authors)}">0</span></a>
+        <a href="#categories">Chủ đề <span th:text="${#lists.size(categories)}">0</span></a>
+        <a href="#publishers">Nhà xuất bản <span th:text="${#lists.size(publishers)}">0</span></a>
+    </nav>
+
+    <div class="permission-note" th:unless="${isAdmin}"><span><svg th:replace="~{fragments/icons :: icon('info')}"></svg></span><p><strong>Chế độ chỉ xem</strong> Chỉ quản trị viên mới có quyền thêm hoặc xóa dữ liệu danh mục.</p></div>
+
+    <section class="reference-grid">
+        <article class="panel reference-card" id="authors">
+            <header class="panel-header"><div><h2>Tác giả</h2><p>Người và tổ chức chịu trách nhiệm</p></div><span class="count-pill" th:text="${#lists.size(authors)}">0</span></header>
+            <form class="inline-create" th:if="${isAdmin}" th:action="@{/reference-data/authors}" th:object="${newAuthor}" method="post" data-loading-form>
+                <div class="field"><label for="authorName">Tên tác giả <span class="required">*</span></label><input id="authorName" th:field="*{name}" required maxlength="150" th:aria-invalid="${#fields.hasErrors('name')}" aria-describedby="authorName-error" placeholder="Nguyễn Văn A"><small class="field-error" id="authorName-error" role="alert" th:errors="*{name}">Lỗi</small></div>
+                <div class="field"><label for="authorCountry">Quốc gia</label><input id="authorCountry" th:field="*{country}" maxlength="100" th:aria-invalid="${#fields.hasErrors('country')}" aria-describedby="authorCountry-error" placeholder="Việt Nam"><small class="field-error" id="authorCountry-error" role="alert" th:errors="*{country}">Lỗi</small></div>
+                <button class="button button-secondary button-full" type="submit"><svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Thêm tác giả</button>
+            </form>
+            <div class="reference-list">
+                <div class="reference-item" th:each="author : ${authors}">
+                    <span class="list-avatar" th:text="${#strings.substring(author.name, 0, 1)}">A</span>
+                    <span><strong th:text="${author.name}">Tác giả</strong><small th:text="${author.country ?: 'Chưa xác định quốc gia'}">Việt Nam</small></span>
+                    <form th:if="${isAdmin}" th:action="@{/reference-data/authors/{id}/delete(id=${author.id})}" method="post" data-confirm="Xóa tác giả này?"><button class="icon-action danger" type="submit" aria-label="Xóa tác giả" title="Xóa"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg></button></form>
+                </div>
+                <div class="empty-state small" th:if="${#lists.isEmpty(authors)}">Chưa có tác giả.</div>
+            </div>
+        </article>
+
+        <article class="panel reference-card" id="categories">
+            <header class="panel-header"><div><h2>Chủ đề</h2><p>Phân nhóm nội dung tài liệu</p></div><span class="count-pill" th:text="${#lists.size(categories)}">0</span></header>
+            <form class="inline-create" th:if="${isAdmin}" th:action="@{/reference-data/categories}" th:object="${newCategory}" method="post" data-loading-form>
+                <div class="two-field-row">
+                    <div class="field short-field"><label for="categoryCode">Mã <span class="required">*</span></label><input id="categoryCode" th:field="*{code}" required maxlength="30" th:aria-invalid="${#fields.hasErrors('code')}" aria-describedby="categoryCode-error" placeholder="CN"><small class="field-error" id="categoryCode-error" role="alert" th:errors="*{code}">Lỗi</small></div>
+                    <div class="field"><label for="categoryName">Tên chủ đề <span class="required">*</span></label><input id="categoryName" th:field="*{name}" required maxlength="150" th:aria-invalid="${#fields.hasErrors('name')}" aria-describedby="categoryName-error" placeholder="Công nghệ"><small class="field-error" id="categoryName-error" role="alert" th:errors="*{name}">Lỗi</small></div>
+                </div>
+                <button class="button button-secondary button-full" type="submit"><svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Thêm chủ đề</button>
+            </form>
+            <div class="reference-list">
+                <div class="reference-item" th:each="category : ${categories}">
+                    <span class="code-avatar" th:text="${category.code}">CN</span>
+                    <span><strong th:text="${category.name}">Chủ đề</strong><small th:text="${category.description ?: 'Chưa có mô tả'}">Mô tả</small></span>
+                    <form th:if="${isAdmin}" th:action="@{/reference-data/categories/{id}/delete(id=${category.id})}" method="post" data-confirm="Xóa chủ đề này?"><button class="icon-action danger" type="submit" aria-label="Xóa chủ đề" title="Xóa"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg></button></form>
+                </div>
+                <div class="empty-state small" th:if="${#lists.isEmpty(categories)}">Chưa có chủ đề.</div>
+            </div>
+        </article>
+
+        <article class="panel reference-card" id="publishers">
+            <header class="panel-header"><div><h2>Nhà xuất bản</h2><p>Đơn vị phát hành tài liệu</p></div><span class="count-pill" th:text="${#lists.size(publishers)}">0</span></header>
+            <form class="inline-create" th:if="${isAdmin}" th:action="@{/reference-data/publishers}" th:object="${newPublisher}" method="post" data-loading-form>
+                <div class="field"><label for="publisherName">Tên nhà xuất bản <span class="required">*</span></label><input id="publisherName" th:field="*{name}" required maxlength="180" th:aria-invalid="${#fields.hasErrors('name')}" aria-describedby="publisherName-error" placeholder="Nhà xuất bản Trẻ"><small class="field-error" id="publisherName-error" role="alert" th:errors="*{name}">Lỗi</small></div>
+                <div class="field"><label for="publisherEmail">Email</label><input id="publisherEmail" type="email" th:field="*{email}" maxlength="150" th:aria-invalid="${#fields.hasErrors('email')}" aria-describedby="publisherEmail-error" placeholder="contact@example.vn"><small class="field-error" id="publisherEmail-error" role="alert" th:errors="*{email}">Lỗi</small></div>
+                <button class="button button-secondary button-full" type="submit"><svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Thêm nhà xuất bản</button>
+            </form>
+            <div class="reference-list">
+                <div class="reference-item" th:each="publisher : ${publishers}">
+                    <span class="list-avatar publisher-avatar">N</span>
+                    <span><strong th:text="${publisher.name}">Nhà xuất bản</strong><small th:text="${publisher.email ?: 'Chưa cập nhật email'}">Email</small></span>
+                    <form th:if="${isAdmin}" th:action="@{/reference-data/publishers/{id}/delete(id=${publisher.id})}" method="post" data-confirm="Xóa nhà xuất bản này?"><button class="icon-action danger" type="submit" aria-label="Xóa nhà xuất bản" title="Xóa"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg></button></form>
+                </div>
+                <div class="empty-state small" th:if="${#lists.isEmpty(publishers)}">Chưa có nhà xuất bản.</div>
+            </div>
+        </article>
+    </section>
+</main>
+</html>

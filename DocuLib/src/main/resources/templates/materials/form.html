@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${editing ? 'Chỉnh sửa tài liệu' : 'Biên mục mới'}, ~{::main})}">
+<main class="page-content narrow-content">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/materials}">Kho tài liệu</a><span>/</span><span th:text="${editing ? 'Chỉnh sửa' : 'Tạo mới'}">Tạo mới</span></div>
+            <h1 th:text="${editing ? 'Chỉnh sửa biểu ghi' : 'Biên mục tài liệu mới'}">Biên mục tài liệu mới</h1>
+            <p>Hoàn thiện các trường mô tả để tài liệu được tra cứu chính xác.</p>
+        </div>
+    </section>
+
+    <form th:action="@{/materials/save}" th:object="${materialForm}" method="post" class="form-stack" data-loading-form>
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" th:field="*{version}">
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">01</span><div><h2>Thông tin nhận diện</h2><p>Nhan đề, mã kiểm kê và định danh xuất bản.</p></div></header>
+            <div class="form-grid">
+                <div class="field span-2">
+                    <label for="title">Nhan đề <span class="required">*</span></label>
+                    <input id="title" th:field="*{title}" required maxlength="300" th:classappend="${#fields.hasErrors('title')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('title')}" aria-describedby="title-error" placeholder="Nhập nhan đề đầy đủ của tài liệu" autofocus>
+                    <small class="field-error" id="title-error" role="alert" th:errors="*{title}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="inventoryCode">Mã tài liệu</label>
+                    <input id="inventoryCode" th:field="*{inventoryCode}" maxlength="40" th:classappend="${#fields.hasErrors('inventoryCode')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('inventoryCode')}" aria-describedby="inventoryCode-hint inventoryCode-error" placeholder="Tự sinh nếu để trống">
+                    <small class="field-hint" id="inventoryCode-hint">Ví dụ: TL-2026-0001</small><small class="field-error" id="inventoryCode-error" role="alert" th:errors="*{inventoryCode}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="isbnIssn">ISBN / ISSN</label>
+                    <input id="isbnIssn" th:field="*{isbnIssn}" maxlength="30" th:classappend="${#fields.hasErrors('isbnIssn')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('isbnIssn')}" aria-describedby="isbnIssn-error" placeholder="978-604-...">
+                    <small class="field-error" id="isbnIssn-error" role="alert" th:errors="*{isbnIssn}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="materialType">Loại tài liệu <span class="required">*</span></label>
+                    <select id="materialType" th:field="*{materialType}" required th:classappend="${#fields.hasErrors('materialType')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('materialType')}" aria-describedby="materialType-error">
+                        <option th:each="item : ${materialTypes}" th:value="${item}" th:text="${item.label}">Sách</option>
+                    </select>
+                    <small class="field-error" id="materialType-error" role="alert" th:errors="*{materialType}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="status">Trạng thái xử lý <span class="required">*</span></label>
+                    <select id="status" th:field="*{status}" required th:classappend="${#fields.hasErrors('status')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('status')}" aria-describedby="status-error">
+                        <option th:each="item : ${materialStatuses}" th:value="${item}" th:text="${item.label}">Đang xử lý</option>
+                    </select>
+                    <small class="field-error" id="status-error" role="alert" th:errors="*{status}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">02</span><div><h2>Mô tả xuất bản</h2><p>Trách nhiệm tác giả, phát hành và mô tả vật lý.</p></div></header>
+            <div class="form-grid">
+                <div class="field span-2">
+                    <label for="authorIds">Tác giả / người chịu trách nhiệm</label>
+                    <select id="authorIds" th:field="*{authorIds}" multiple size="5" aria-describedby="authorIds-hint">
+                        <option th:each="author : ${authors}" th:value="${author.id}" th:text="${author.name + (author.country != null ? ' · ' + author.country : '')}">Tác giả</option>
+                    </select>
+                    <small class="field-hint" id="authorIds-hint">Giữ Ctrl (Windows) hoặc Command (macOS) để chọn nhiều tác giả. Có thể thêm mới trong Dữ liệu danh mục.</small>
+                </div>
+                <div class="field">
+                    <label for="publisherId">Nhà xuất bản</label>
+                    <select id="publisherId" th:field="*{publisherId}">
+                        <option value="">Chưa xác định</option>
+                        <option th:each="publisher : ${publishers}" th:value="${publisher.id}" th:text="${publisher.name}">NXB</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="publishYear">Năm xuất bản</label>
+                    <input id="publishYear" type="number" min="1000" max="2100" th:field="*{publishYear}" th:classappend="${#fields.hasErrors('publishYear')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('publishYear')}" aria-describedby="publishYear-error" placeholder="2026">
+                    <small class="field-error" id="publishYear-error" role="alert" th:errors="*{publishYear}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="edition">Lần xuất bản</label>
+                    <input id="edition" th:field="*{edition}" maxlength="80" th:classappend="${#fields.hasErrors('edition')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('edition')}" aria-describedby="edition-error" placeholder="Lần 1 / Tái bản">
+                    <small class="field-error" id="edition-error" role="alert" th:errors="*{edition}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="language">Ngôn ngữ</label>
+                    <input id="language" th:field="*{language}" maxlength="80" th:classappend="${#fields.hasErrors('language')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('language')}" aria-describedby="language-error" placeholder="Tiếng Việt">
+                    <small class="field-error" id="language-error" role="alert" th:errors="*{language}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="pages">Số trang</label>
+                    <input id="pages" type="number" min="1" th:field="*{pages}" th:classappend="${#fields.hasErrors('pages')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('pages')}" aria-describedby="pages-error" placeholder="320">
+                    <small class="field-error" id="pages-error" role="alert" th:errors="*{pages}">Lỗi</small>
+                </div>
+                <div class="field">
+                    <label for="quantity">Số bản <span class="required">*</span></label>
+                    <input id="quantity" type="number" min="0" th:field="*{quantity}" required th:classappend="${#fields.hasErrors('quantity')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('quantity')}" aria-describedby="quantity-error">
+                    <small class="field-error" id="quantity-error" role="alert" th:errors="*{quantity}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel form-section">
+            <header class="form-section-header"><span class="section-number">03</span><div><h2>Phân loại &amp; nội dung</h2><p>Thông tin giúp định vị và khám phá tài liệu.</p></div></header>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="categoryId">Chủ đề</label>
+                    <select id="categoryId" th:field="*{categoryId}">
+                        <option value="">Chưa phân loại</option>
+                        <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.code + ' · ' + category.name}">Chủ đề</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="callNumber">Ký hiệu xếp giá</label>
+                    <input id="callNumber" th:field="*{callNumber}" maxlength="80" th:classappend="${#fields.hasErrors('callNumber')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('callNumber')}" aria-describedby="callNumber-error" placeholder="005.1 MAR">
+                    <small class="field-error" id="callNumber-error" role="alert" th:errors="*{callNumber}">Lỗi</small>
+                </div>
+                <div class="field span-2">
+                    <label for="description">Tóm tắt / mô tả</label>
+                    <textarea id="description" rows="5" maxlength="5000" th:field="*{description}" th:classappend="${#fields.hasErrors('description')} ? 'invalid'" th:aria-invalid="${#fields.hasErrors('description')}" aria-describedby="description-error" placeholder="Tóm tắt nội dung, phạm vi và đối tượng sử dụng..."></textarea>
+                    <small class="field-error" id="description-error" role="alert" th:errors="*{description}">Lỗi</small>
+                </div>
+            </div>
+        </section>
+
+        <div class="form-actions sticky-actions">
+            <a class="button button-ghost" th:href="${editing ? '/materials/' + materialForm.id : '/materials'}">Hủy</a>
+            <button class="button button-primary" type="submit"><svg th:replace="~{fragments/icons :: icon('circle-check')}"></svg><span th:text="${editing ? 'Lưu thay đổi' : 'Hoàn tất biên mục'}">Hoàn tất biên mục</span></button>
+        </div>
+    </form>
+</main>
+</html>

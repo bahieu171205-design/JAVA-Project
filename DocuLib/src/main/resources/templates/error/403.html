@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Không có quyền truy cập', ~{::main})}">
+<main class="page-content access-denied-page">
+    <section class="panel access-denied-card">
+        <span class="access-denied-icon"><svg th:replace="~{fragments/icons :: icon('lock-keyhole')}"></svg></span>
+        <span class="error-code-small">403</span>
+        <h1>Bạn không có quyền thực hiện thao tác này</h1>
+        <p>Vai trò hiện tại không được phép truy cập trang hoặc chức năng vừa yêu cầu.</p>
+        <div class="heading-actions"><a class="button button-secondary" th:href="@{/materials}">Xem tài liệu</a><a class="button button-primary" th:href="@{/}">Về trang tổng quan</a></div>
+    </section>
+</main>
+</html>

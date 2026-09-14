@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${collectionType == 'favorites' ? 'Tài liệu yêu thích' : (collectionType == 'shared' ? 'Được chia sẻ' : 'Thùng rác')}, ~{::main})}">
+<main class="page-content">
+    <section class="page-heading">
+        <div>
+            <div class="breadcrumb"><a th:href="@{/}">Tổng quan</a><span>/</span>
+                <span th:text="${collectionType == 'favorites' ? 'Yêu thích' : (collectionType == 'shared' ? 'Được chia sẻ' : 'Thùng rác')}">Bộ sưu tập</span>
+            </div>
+            <h1 th:text="${collectionType == 'favorites' ? 'Tài liệu yêu thích' : (collectionType == 'shared' ? 'Được chia sẻ với tôi' : 'Thùng rác')}">Bộ sưu tập</h1>
+            <p th:if="${collectionType == 'favorites'}">Lưu nhanh những tài liệu bạn thường xuyên tra cứu.</p>
+            <p th:if="${collectionType == 'shared'}">Các tài liệu được cán bộ biên mục hoặc quản trị viên chia sẻ trực tiếp cho bạn.</p>
+            <p th:if="${collectionType == 'trash'}">Khôi phục tài liệu về kho hoặc xóa vĩnh viễn khỏi hệ thống.</p>
+        </div>
+        <a class="button button-primary" th:if="${canEdit and collectionType != 'trash'}" th:href="@{/materials/new}"><svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Thêm tài liệu</a>
+    </section>
+
+    <section class="panel table-panel">
+        <header class="panel-header table-heading">
+            <div>
+                <h2 th:text="${collectionType == 'favorites' ? 'Danh sách yêu thích' : (collectionType == 'shared' ? 'Danh sách được chia sẻ' : 'Tài liệu đã xóa')}">Danh sách</h2>
+                <p th:if="${collectionType == 'favorites'}"><strong th:text="${#lists.size(favorites)}">0</strong> tài liệu đã lưu</p>
+                <p th:if="${collectionType == 'shared'}"><strong th:text="${#lists.size(shares)}">0</strong> tài liệu được chia sẻ</p>
+                <p th:if="${collectionType == 'trash'}"><strong th:text="${#lists.size(trashMaterials)}">0</strong> tài liệu trong thùng rác</p>
+            </div>
+            <a class="text-link" th:if="${collectionType != 'trash'}" th:href="@{/materials}">Mở kho tài liệu <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></a>
+        </header>
+
+        <div class="table-scroll" th:if="${collectionType == 'favorites' and !#lists.isEmpty(favorites)}">
+            <table class="data-table responsive-table collection-table">
+                <thead><tr><th>Tài liệu</th><th>Loại &amp; chủ đề</th><th>Trạng thái</th><th>Cập nhật</th><th>Đã lưu</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="favorite : ${favorites}" th:with="material=${favorite.material}">
+                    <td data-label="Tài liệu"><div class="resource-cell"><span class="resource-symbol" th:text="${material.materialType == T(vn.edu.doculib.model.MaterialType).EBOOK ? 'E' : 'T'}">T</span><span class="resource-copy"><a class="title-link" th:href="@{/materials/{id}(id=${material.id})}" th:text="${material.title}" th:title="${material.title}">Nhan đề</a><small class="mono-inline" th:text="${material.inventoryCode}">TL-001</small></span></div></td>
+                    <td data-label="Loại"><span th:text="${material.materialType.label}">Sách</span><small th:text="${material.category != null ? material.category.name : 'Chưa phân loại'}">Chủ đề</small></td>
+                    <td data-label="Trạng thái"><span class="badge" th:classappend="${'badge-' + material.status.badgeClass}" th:text="${material.status.label}">Sẵn sàng</span></td>
+                    <td data-label="Cập nhật"><time th:datetime="${material.updatedAt}" th:text="${#temporals.format(material.updatedAt, 'dd/MM/yyyy')}">26/08/2026</time></td>
+                    <td data-label="Đã lưu"><time th:datetime="${favorite.createdAt}" th:text="${#temporals.format(favorite.createdAt, 'dd/MM/yyyy')}">26/08/2026</time></td>
+                    <td data-label="Thao tác"><div class="row-actions"><form th:action="@{/materials/{id}/favorite(id=${material.id})}" method="post"><input type="hidden" name="returnTo" value="favorites"><button class="icon-action favorite-toggle active" type="submit" aria-label="Bỏ khỏi yêu thích" title="Bỏ khỏi yêu thích"><svg th:replace="~{fragments/icons :: icon('star-filled')}"></svg></button></form><a class="icon-action" th:href="@{/materials/{id}(id=${material.id})}" aria-label="Xem chi tiết" title="Xem chi tiết"><svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg></a></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-scroll" th:if="${collectionType == 'shared' and !#lists.isEmpty(shares)}">
+            <table class="data-table responsive-table collection-table">
+                <thead><tr><th>Tài liệu</th><th>Loại &amp; chủ đề</th><th>Người chia sẻ</th><th>Ngày chia sẻ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="share : ${shares}" th:with="material=${share.material}">
+                    <td data-label="Tài liệu"><div class="resource-cell"><span class="resource-symbol" th:text="${material.materialType == T(vn.edu.doculib.model.MaterialType).EBOOK ? 'E' : 'T'}">T</span><span class="resource-copy"><a class="title-link" th:href="@{/materials/{id}(id=${material.id})}" th:text="${material.title}" th:title="${material.title}">Nhan đề</a><small class="mono-inline" th:text="${material.inventoryCode}">TL-001</small></span></div></td>
+                    <td data-label="Loại"><span th:text="${material.materialType.label}">Sách</span><small th:text="${material.category != null ? material.category.name : 'Chưa phân loại'}">Chủ đề</small></td>
+                    <td data-label="Người chia sẻ"><span th:text="${share.sharedBy.fullName}">Người chia sẻ</span><small th:text="${share.sharedBy.role.label}">Vai trò</small></td>
+                    <td data-label="Ngày chia sẻ"><time th:datetime="${share.sharedAt}" th:text="${#temporals.format(share.sharedAt, 'dd/MM/yyyy HH:mm')}">26/08/2026</time></td>
+                    <td data-label="Trạng thái"><span class="badge" th:classappend="${'badge-' + material.status.badgeClass}" th:text="${material.status.label}">Sẵn sàng</span></td>
+                    <td data-label="Thao tác"><div class="row-actions"><form th:action="@{/materials/{id}/favorite(id=${material.id})}" method="post"><input type="hidden" name="returnTo" value="shared"><button class="icon-action favorite-toggle" type="submit" th:classappend="${favoriteMaterialIds.contains(material.id)} ? 'active'" th:aria-label="${favoriteMaterialIds.contains(material.id) ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}" th:title="${favoriteMaterialIds.contains(material.id) ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}"><th:block th:if="${favoriteMaterialIds.contains(material.id)}"><svg th:replace="~{fragments/icons :: icon('star-filled')}"></svg></th:block><th:block th:unless="${favoriteMaterialIds.contains(material.id)}"><svg th:replace="~{fragments/icons :: icon('star')}"></svg></th:block></button></form><a class="icon-action" th:href="@{/materials/{id}(id=${material.id})}" aria-label="Xem chi tiết" title="Xem chi tiết"><svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg></a></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-scroll" th:if="${collectionType == 'trash' and !#lists.isEmpty(trashMaterials)}">
+            <table class="data-table responsive-table collection-table trash-table">
+                <thead><tr><th>Tài liệu</th><th>Loại</th><th>Người xóa</th><th>Ngày xóa</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="material : ${trashMaterials}">
+                    <td data-label="Tài liệu"><div class="resource-cell"><span class="resource-symbol trash-symbol"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg></span><span class="resource-copy"><strong class="collection-title" th:text="${material.title}" th:title="${material.title}">Nhan đề</strong><small class="mono-inline" th:text="${material.inventoryCode}">TL-001</small></span></div></td>
+                    <td data-label="Loại"><span th:text="${material.materialType.label}">Sách</span><small th:text="${material.category != null ? material.category.name : 'Chưa phân loại'}">Chủ đề</small></td>
+                    <td data-label="Người xóa"><span th:text="${material.trashedBy != null ? material.trashedBy.fullName : 'Không xác định'}">Quản trị viên</span></td>
+                    <td data-label="Ngày xóa"><time th:if="${material.trashedAt != null}" th:datetime="${material.trashedAt}" th:text="${#temporals.format(material.trashedAt, 'dd/MM/yyyy HH:mm')}">26/08/2026</time></td>
+                    <td data-label="Trạng thái"><span class="badge badge-danger">Trong thùng rác</span></td>
+                    <td data-label="Thao tác"><div class="trash-actions"><form th:action="@{/materials/trash/{id}/restore(id=${material.id})}" method="post"><button class="button button-small button-secondary" type="submit"><svg th:replace="~{fragments/icons :: icon('history')}"></svg>Khôi phục</button></form><form th:action="@{/materials/trash/{id}/delete(id=${material.id})}" method="post" data-confirm="Xóa vĩnh viễn tài liệu này? Thao tác không thể hoàn tác."><button class="button button-small button-danger-ghost" type="submit"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg>Xóa vĩnh viễn</button></form></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${(collectionType == 'favorites' and #lists.isEmpty(favorites)) or (collectionType == 'shared' and #lists.isEmpty(shares)) or (collectionType == 'trash' and #lists.isEmpty(trashMaterials))}">
+            <span class="empty-icon"><th:block th:switch="${collectionType}"><th:block th:case="'favorites'"><svg th:replace="~{fragments/icons :: icon('star')}"></svg></th:block><th:block th:case="'shared'"><svg th:replace="~{fragments/icons :: icon('share-2')}"></svg></th:block><th:block th:case="*"><svg th:replace="~{fragments/icons :: icon('trash-2')}"></svg></th:block></th:block></span>
+            <h3 th:text="${collectionType == 'favorites' ? 'Chưa có tài liệu yêu thích' : (collectionType == 'shared' ? 'Chưa có tài liệu được chia sẻ' : 'Thùng rác đang trống')}">Chưa có dữ liệu</h3>
+            <p th:text="${collectionType == 'favorites' ? 'Đánh dấu ngôi sao tại kho hoặc trang chi tiết để lưu tài liệu.' : (collectionType == 'shared' ? 'Tài liệu được chia sẻ trực tiếp cho bạn sẽ xuất hiện tại đây.' : 'Tài liệu bị xóa mềm sẽ xuất hiện tại đây để có thể khôi phục.')}">Nội dung trống</p>
+            <a class="button button-secondary" th:if="${collectionType != 'trash'}" th:href="@{/materials}">Mở kho tài liệu</a>
+        </div>
+    </section>
+</main>
+</html>
